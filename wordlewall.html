@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Wordle Wall (Brick + Craft Paper + Solid Input)</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+<style>
+  :root{
+    --brown:#8b5e3c;
+    --brown-dark:#6d452b;
+    --correct:#538d4e;
+    --tile-size:34px;
+    --tile-gap:6px;
+  }
+  body {
+    font-family: system-ui, sans-serif;
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: url("https://www.transparenttextures.com/patterns/brick-wall.png");
+  }
+
+  .wall {
+    position: relative;
+    width: 90vw;
+    height: 90vh;
+    overflow: visible; /* allow dropdowns to render outside */
+  }
+
+  .center img {
+    position: absolute;
+    top: 40%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 180px; height: 180px;
+    border-radius: 12px;
+    border: 4px solid var(--brown);
+    object-fit: cover;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.3);
+    background: white;
+    z-index: 1;
+  }
+
+  /* Craft-paper blocks */
+  .block {
+    position: absolute;
+    color: #2b1a0e;
+    font-weight: 700;
+    font-size: 1.1rem;
+    border-radius: 10px;
+    height: 60px;
+    line-height: 60px;
+    text-align: center;
+    cursor: pointer;
+    box-shadow: 0 6px 12px rgba(0,0,0,0.25);
+    user-select: none;
+    transform: rotate(calc(-8deg + 16deg * var(--rand)));
+    transition: transform 0.2s;
+    /* Paper texture look */
+    background:
+      linear-gradient(135deg, rgba(255,255,255,0.12), rgba(0,0,0,0.10)),
+      url("https://www.transparenttextures.com/patterns/paper-fibers.png"),
+      var(--brown);
+    background-size: cover;
+    border: 2px solid var(--brown-dark);
+    white-space: nowrap;
+    z-index: 2;
+  }
+  .block:hover {
+    transform: scale(1.05) rotate(calc(-8deg + 16deg * var(--rand)));
+  }
+  .block.revealed {
+    cursor: default;
+  }
+
+  /* Frame look when solved */
+  .block.frame {
+    background: #fdf6e3;
+    color: #2b1a0e;
+    border: 6px solid var(--brown-dark);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3), inset 0 0 6px rgba(0,0,0,0.25);
+    border-radius: 12px;
+    font-size: 1.2rem;
+    font-weight: 800;
+    padding: 0 10px;
+    line-height: 60px;
+    text-transform: uppercase;
+  }
+
+  /* Dropdown */
+  .dropdown {
+    display: none;
+    position: absolute;
+    top: 110%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #000;
+    color: #fff;
+    border: 2px solid var(--brown);
+    padding: 12px;
+    border-radius: 10px;
+    z-index: 10000; /* keep on top */
+    width: auto;          /* set by JS per word */
+    max-width: 80vw;      /* guard on very long words */
+    box-sizing: border-box;
+  }
+
+  .grid { 
+    display: grid; 
+    gap: var(--tile-gap); 
+    margin-bottom: 6px; 
+    cursor: text; /* looks like an input area */
+    justify-content: center;   /* center all rows */
+  }
+  .row  { display: grid; gap: var(--tile-gap); justify-content: center; }
+
+  .tile {
+    width: var(--tile-size);
+    height: var(--tile-size);
+    border: 2px solid #555;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 0.95rem;
+    line-height: var(--tile-size);
+    background: #000;
+    color: #fff;
+    border-radius: 6px;
+    text-transform: uppercase;
+  }
+  .tile.absent   { background: #3a3a3c; border-color: #3a3a3c; }
+  .tile.present  { background: #b59f3b; border-color: #b59f3b; }
+  .tile.correct  { background: #538d4e; border-color: #538d4e; }
+
+  /* Tiny hidden input to trigger mobile keyboard */
+  .controls { position: relative; height: 0; }
+  .controls input {
+    position: absolute;
+    width: 1px; height: 1px;
+    border: 0; padding: 0; margin: -1px;
+    clip: rect(0 0 0 0); clip-path: inset(50%);
+    overflow: hidden;
+    opacity: 0;
+  }
+
+  .feedback {
+    margin-top: 6px; font-size: 0.88rem; text-align: center;
+  }
+
+  /* When open, bring the whole block (and its dropdown) above everything else */
+  .block.open {
+    z-index: 9999;
+  }
+</style>
+</head>
+<body>
+  <div class="wall" id="wall">
+    <div class="center"><img src="gamecards/pic11.jpg" alt="Center" id="centerPic"></div>
+    <!-- blocks will be injected here -->
+  </div>
+
+<script>
+(function(){
+  /* =========================
+     CONFIG
+  ========================= */
+  const TILE = 34;   // px
+  const GAP  = 6;    // px
+  const PADX = 24;   // dropdown horizontal padding approx
+  const BLOCK_H = 60;
+  const PX_PER_LETTER = 40; // visual width per letter for the paper block
+
+  // 19 words (init as requested)
+  const WORDS = [
+    "LOVE","CUTE","HAPPY","BIRTHDAY","WORTHLESS",
+    "TINY","BONNY","KIND","SOFTY","BRAVE",
+    "GUTSY","STRONG","DEHYDRATED","BABY","CARING",
+    "SUNSHINE","CLUMSY","MAGIC","ANGEL"
+  ];
+
+  /* =========================
+     localStorage helpers
+  ========================= */
+  function saveSolved(answer){
+    let solved = JSON.parse(localStorage.getItem("solvedWords") || "[]");
+    if(!solved.includes(answer)){
+      solved.push(answer);
+      localStorage.setItem("solvedWords", JSON.stringify(solved));
+    }
+  }
+  function loadSolved(){
+    return JSON.parse(localStorage.getItem("solvedWords") || "[]");
+  }
+
+  /* =========================
+     Random placement
+  ========================= */
+  function rectsOverlap(a,b){
+    return !(a.right <= b.left || a.left >= b.right || a.bottom <= b.top || a.top >= b.bottom);
+  }
+
+  function populateWall() {
+    const wall = document.getElementById('wall');
+    const solved = loadSolved();
+
+    // measure wall + center image rects to avoid overlap with photo
+    const wallRect = wall.getBoundingClientRect();
+    const img = document.getElementById('centerPic');
+    const imgRectAbs = img.getBoundingClientRect();
+    const centerRect = {
+      left: imgRectAbs.left - wallRect.left - 8,
+      top: imgRectAbs.top - wallRect.top - 8,
+      right: imgRectAbs.right - wallRect.left + 8,
+      bottom: imgRectAbs.bottom - wallRect.top + 8
+    };
+
+    const placed = []; // keep placed rects to avoid collisions
+
+    WORDS.forEach(word => {
+      const block = document.createElement('div');
+      block.className = 'block';
+      block.dataset.answer = word.toUpperCase();
+      block.textContent = '?';
+      block.style.setProperty('--rand', Math.random().toFixed(2));
+
+      // approximate width before we place it
+      const approxW = Math.max(100, word.length * PX_PER_LETTER); // min width so small words aren't tiny
+      block.style.width = approxW + 'px';
+      block.style.height = BLOCK_H + 'px';
+
+      // find a non-overlapping spot
+      const pad = 6; // small padding between blocks
+      const maxLeft = Math.max(0, wallRect.width - approxW - pad);
+      const maxTop  = Math.max(0, wallRect.height - BLOCK_H - pad);
+
+      let tries = 0, placedOk = false, chosen = null;
+      while(tries < 120 && !placedOk){
+        const leftPx = Math.random() * maxLeft;
+        const topPx  = Math.random() * maxTop;
+
+        const rect = {
+          left: leftPx - pad, top: topPx - pad,
+          right: leftPx + approxW + pad, bottom: topPx + BLOCK_H + pad
+        };
+
+        // check vs center photo and previous blocks
+        if(rectsOverlap(rect, centerRect)){
+          tries++; continue;
+        }
+        let overlaps = false;
+        for(const r of placed){ if(rectsOverlap(rect, r)){ overlaps = true; break; } }
+        if(!overlaps){ placedOk = true; chosen = { leftPx, topPx, rect }; }
+        tries++;
+      }
+      // if couldn't find, just pick anything (best effort)
+      if(!chosen){
+        chosen = { leftPx: Math.random()*maxLeft, topPx: Math.random()*maxTop };
+        chosen.rect = {
+          left: chosen.leftPx, top: chosen.topPx,
+          right: chosen.leftPx + approxW, bottom: chosen.topPx + BLOCK_H
+        };
+      }
+      placed.push(chosen.rect);
+
+      // set as percentages so it scales with wall size
+      block.style.left = (chosen.leftPx / wallRect.width * 100) + '%';
+      block.style.top  = (chosen.topPx  / wallRect.height * 100) + '%';
+
+      // if already solved, render as framed word immediately
+      if(solved.includes(word.toUpperCase())){
+        block.textContent = word.toUpperCase();
+        block.classList.add('revealed','frame');
+      }
+
+      wall.appendChild(block);
+    });
+  }
+
+  /* =========================
+     Wordle evaluation
+  ========================= */
+  function evaluateGuess(guess, answer){
+    const n = answer.length;
+    const res = Array(n).fill("absent");
+    const counts = {};
+    for(const ch of answer) counts[ch] = (counts[ch]||0)+1;
+    for(let i=0;i<n;i++){
+      if(guess[i]===answer[i]){ res[i]="correct"; counts[guess[i]]--; }
+    }
+    for(let i=0;i<n;i++){
+      if(res[i]==="correct") continue;
+      const ch=guess[i];
+      if(counts[ch]>0){ res[i]="present"; counts[ch]--; }
+    }
+    return res;
+  }
+
+  function addRow(gridEl, wordLen){
+    const row = document.createElement("div");
+    row.className="row";
+    /* fixed pixel tracks so letters stay inside squares */
+    row.style.gridTemplateColumns = `repeat(${wordLen}, ${TILE}px)`;
+    for(let i=0;i<wordLen;i++){
+      const t = document.createElement("div");
+      t.className = "tile";
+      row.appendChild(t);
+    }
+    gridEl.appendChild(row);
+  }
+
+  /* =========================
+     Active-block routing (NEW, tiny)
+  ========================= */
+  let activeBlock = null; // only this block listens to keys
+
+  function openThisBlock(block, dropdown, startListening){
+    // Close previously active block (if any)
+    if(activeBlock && activeBlock !== block){
+      const otherDropdown = activeBlock.querySelector('.dropdown');
+      if(otherDropdown) otherDropdown.style.display = 'none';
+      activeBlock.classList.remove('open');
+      if(typeof activeBlock._stopListening === 'function'){
+        activeBlock._stopListening();
+      }
+    }
+    // Open current
+    activeBlock = block;
+    block.classList.add('open');
+    dropdown.style.display = 'block';
+    startListening();
+  }
+
+  function closeThisBlock(block, dropdown, stopListening){
+    if(activeBlock === block) activeBlock = null;
+    block.classList.remove('open');
+    dropdown.style.display = 'none';
+    stopListening();
+  }
+
+  /* =========================
+     Build wall, then wire up each block
+  ========================= */
+  populateWall();
+
+  document.querySelectorAll('.block').forEach(block=>{
+    const answer=(block.dataset.answer||"").toUpperCase().trim();
+    if(!answer) return;
+
+    /* restore solved blocks immediately (no dropdown for them) */
+    const solved = loadSolved();
+    if(solved.includes(answer)){
+      block.textContent = answer;
+      block.classList.add("revealed", "frame");
+      return;
+    }
+
+    const wordLen=answer.length, maxTries=wordLen+1;
+    let tries=0, finished=false, currentCol=0, listening=false;
+
+    // ensure width matches letters (also set during placement, but keep consistent)
+    block.style.width = (Math.max(100, wordLen * 40)) + "px";
+
+    const dropdown=document.createElement("div");
+    dropdown.className="dropdown";
+    dropdown.innerHTML=`
+      <div class="grid"></div>
+      <div class="controls"><input maxlength="${wordLen}" aria-hidden="true"></div>
+      <div class="feedback"></div>`;
+    block.appendChild(dropdown);
+
+    const gridEl   = dropdown.querySelector(".grid");
+    const input    = dropdown.querySelector("input"); // only to pop mobile keyboard
+    const feedback = dropdown.querySelector(".feedback");
+
+    /* Build rows up front */
+    for(let r=0;r<maxTries;r++) addRow(gridEl, wordLen);
+
+    /* Size dropdown to fit tiles exactly (plus padding) */
+    const gridWidth = wordLen * TILE + (wordLen - 1) * GAP;
+    dropdown.style.width = Math.max(220, gridWidth + PADX) + "px";
+
+    /* KEY HANDLER */
+    const onKey = (e)=>{
+      if(!listening || finished) return;
+
+      const rows = [...gridEl.querySelectorAll(".row")];
+      const row  = rows[tries];
+      const tiles = [...row.querySelectorAll(".tile")];
+
+      if(e.key === "Enter"){
+        submit();
+        e.preventDefault();
+        return;
+      }
+      if(e.key === "Escape"){
+        // Close just this block on Esc
+        closeThisBlock(block, dropdown, stopListening);
+        e.preventDefault();
+        return;
+      }
+      if(e.key === "Backspace"){
+        if(currentCol > 0){
+          currentCol--;
+          tiles[currentCol].textContent = "";
+        } else if(currentCol === 0 && tiles[0].textContent !== ""){
+          tiles[0].textContent = "";
+        }
+        e.preventDefault();
+        return;
+      }
+      if(e.key && e.key.length===1 && /^[a-zA-Z]$/.test(e.key)){
+        if(currentCol < wordLen){
+          tiles[currentCol].textContent = e.key.toUpperCase();
+          currentCol++;
+        }
+        if(currentCol >= wordLen) currentCol = wordLen; // auto-stop at end
+        e.preventDefault();
+      }
+    };
+
+    function startListening(){
+      listening = true;
+      input.focus(); // mobile keyboard
+      document.addEventListener("keydown", onKey);
+    }
+    function stopListening(){
+      listening = false;
+      document.removeEventListener("keydown", onKey);
+    }
+    // expose stop on the element so we can close previous listeners safely
+    block._stopListening = stopListening;
+
+    function submit(){
+      const rows  = [...gridEl.querySelectorAll(".row")];
+      const row   = rows[tries];
+      const tiles = [...row.querySelectorAll(".tile")];
+      const letters = tiles.map(t=>t.textContent);
+
+      if(letters.some(ch => ch === "")){
+        feedback.textContent = `Enter ${wordLen} letters`;
+        return;
+      }
+      const guess = letters.join("");
+
+      const evals = evaluateGuess(guess, answer);
+      tiles.forEach((tile,i)=>{ tile.className = "tile " + evals[i]; });
+
+      tries++;
+      currentCol = 0;
+      feedback.textContent = `Try ${tries}/${maxTries}`;
+
+      const solvedNow = evals.every(s=>s==="correct");
+      if(solvedNow){
+        reveal();
+        return;
+      }
+      if(tries >= maxTries){
+        feedback.textContent = `Out of tries. Answer: ${answer}`;
+        reveal();
+      }
+    }
+
+    function reveal(){
+      finished = true;
+      stopListening();
+      block.textContent = answer;
+      block.classList.add("revealed", "frame");
+      dropdown.style.display = "none";
+      saveSolved(answer);  // persist
+      if(activeBlock === block) activeBlock = null;
+    }
+
+    /* Toggle dropdown (single handler) */
+    block.addEventListener("click", (e)=>{
+      e.stopPropagation();
+      if(block.classList.contains("revealed")) {
+        dropdown.style.display = "none"; // don’t reopen solved
+        return;
+      }
+      const isOpen = dropdown.style.display === "block";
+      if(isOpen){
+        closeThisBlock(block, dropdown, stopListening);
+      }else{
+        openThisBlock(block, dropdown, startListening);
+      }
+    });
+
+    /* keep dropdown open when clicking inside */
+    dropdown.addEventListener("click", e=> e.stopPropagation());
+
+    /* click anywhere else closes the active one */
+    document.body.addEventListener("click", ()=>{
+      if(activeBlock){
+        const dd = activeBlock.querySelector('.dropdown');
+        if(dd){
+          dd.style.display = "none";
+          activeBlock.classList.remove("open");
+          if(typeof activeBlock._stopListening === 'function'){
+            activeBlock._stopListening();
+          }
+          activeBlock = null;
+        }
+      }
+    });
+
+    /* focusing inside grid triggers mobile keyboard through hidden input */
+    gridEl.addEventListener("click", ()=>{ input.focus(); });
+  });
+    document.getElementById("centerPic").addEventListener("click", ()=>{
+    document.querySelectorAll(".block").forEach(block=>{
+      const answer = (block.dataset.answer||"").toUpperCase().trim();
+      if(answer && !block.classList.contains("revealed")){
+        block.textContent = answer;
+        block.classList.add("revealed","frame");
+        const dd = block.querySelector(".dropdown");
+        if(dd) dd.style.display = "none";
+        saveSolved(answer);
+      }
+    });
+    activeBlock = null;
+  });
+})();
+</script>
+</body>
+</html>

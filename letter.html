@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Love Letter</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Parisienne&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+
+  <style>
+    :root{
+      --ink:#5b2a4a; 
+      --paper:#fff7fb; 
+      --paper-edge:#ffd8f0;
+      --shadow: 0 20px 50px rgba(83, 18, 79, .25);
+    }
+
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      color:var(--ink);
+      font-family: Poppins, sans-serif;
+      min-height:100vh;
+      line-height:1.65;
+
+      /* Background with pastel cats + pink-purple overlay */
+      background:
+        linear-gradient(135deg,
+          rgba(255, 154, 216, 0.6),
+          rgba(167, 123, 255, 0.6)
+        ),
+       url("c.avif") center/cover fixed;
+    }
+
+    main{ padding:30px 16px 80px; }
+    .wrap{ max-width:900px; margin:0 auto; position:relative; }
+
+    .floaters{ position:absolute; inset: -40px -20px auto -20px; height: 0; pointer-events:none; }
+    .floater{
+      position:absolute; bottom:-60px; font-size:20px; opacity:.7;
+      animation: rise 10s linear infinite, sway 5s ease-in-out infinite;
+      filter: drop-shadow(0 4px 6px rgba(0,0,0,.2));
+    }
+    .floater:nth-child(2){ left:15%; animation-duration:12s; font-size:24px; animation-delay:1s }
+    .floater:nth-child(3){ left:35%; animation-duration:9s;  font-size:18px; animation-delay:2s }
+    .floater:nth-child(4){ left:55%; animation-duration:11s; font-size:22px; animation-delay:3s }
+    .floater:nth-child(5){ left:75%; animation-duration:13s; font-size:26px; animation-delay:1.5s }
+    @keyframes rise { to { transform: translateY(-110vh) } }
+    @keyframes sway {
+      0%,100%{ transform: translateX(0) }
+      50%{ transform: translateX(16px) }
+    }
+    @media (prefers-reduced-motion: reduce){
+      .floater{ display:none }
+    }
+
+    .envelope{
+      position:relative; width:min(920px, 96vw); margin: 40px auto -10px;
+      height:80px;
+      background: linear-gradient(180deg, rgba(255,255,255,.7), rgba(255,255,255,0));
+      clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 55%, 0 100%);
+      border-top-left-radius:12px; border-top-right-radius:12px;
+      box-shadow: var(--shadow);
+    }
+
+    .paper{
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.9), rgba(255,255,255,.7)),
+        var(--paper);
+      border:1px solid var(--paper-edge);
+      border-radius:14px;
+      box-shadow: var(--shadow);
+      padding:28px clamp(18px, 4vw, 46px);
+      position:relative;
+    }
+
+    .paper::before{
+      content:"";
+      position:absolute; inset:0; z-index:0; border-radius:14px;
+      background:
+        repeating-linear-gradient(
+          to bottom,
+          rgba(255, 126, 196, .16) 0 34px,
+          rgba(255, 126, 196, .16) 34px 35px
+        );
+      pointer-events:none;
+    }
+
+    .letter{ position:relative; z-index:1; font-size: 1.05rem; }
+    .hand{ font-family: Parisienne, cursive; font-size:2rem; color:#7b2e5e; margin: 0 0 10px 0; }
+
+    .meta{ font-size:.95rem; opacity:.75; margin-bottom:18px; }
+
+    .stamp{
+      position:absolute; right:18px; top:-26px; z-index:2;
+      width:86px; height:86px; border-radius:50%;
+      background: linear-gradient(145deg, #d91d83, #8b1362);
+      border:6px dotted #ffd0ea;
+      display:grid; place-items:center;
+      transform: rotate(-8deg);
+      box-shadow: 0 8px 18px rgba(139, 19, 98, .35);
+    }
+    .stamp span{ font-size:28px; color:#fff; text-shadow:0 2px 6px rgba(0,0,0,.35); }
+
+    .signature{ margin-top:26px; font-family: Parisienne, cursive; font-size:1.8rem; color:#6c1f56; }
+
+    blockquote{
+      margin: 18px 0; padding: 10px 16px;
+      border-left: 4px solid rgba(176,132,255,.55);
+      background: rgba(255,255,255,.45);
+      border-radius: 8px;
+      font-style: italic;
+    }
+
+    footer{ text-align:center; font-size:.9rem; opacity:.8; padding:22px 12px; color:#ffe9f6; }
+  </style>
+</head>
+<body>
+  <!-- Decorative envelope flap -->
+  <div class="envelope" aria-hidden="true"></div>
+
+  <main id="letter" class="wrap">
+    <div class="floaters" aria-hidden="true">
+      <div class="floater">♥</div>
+      <div class="floater">❥</div>
+      <div class="floater">♡</div>
+      <div class="floater">💌</div>
+      <div class="floater">♥</div>
+    </div>
+
+    <article class="paper" role="article" aria-label="Love letter">
+      <div class="stamp" aria-hidden="true"><span>💘</span></div>
+
+      <div class="letter">
+        <h1 class="hand">My Dearest,</h1>
+
+        <div class="meta">
+          <div><time datetime="" id="today"></time></div>
+        </div>
+
+        <p>
+          Happyyyy 19th Birthdayyy Princyyy,
+        </p>
+
+        <p>
+          How does it feel? Now that you’ve completed one year as an adult,confusing??new?? Well it happens to everyone so chillll and enjoyyy your “19 on the 19th ” wala birthday.I just hope that you’ve loved all the things that came before this and will also love thissss,I wish I could have been there but ahhh situations,God nerfed me otherwise I would have been so very willing to come and you would’ve been stopping me then.
+        </p>
+
+      
+
+        <p>
+          I am gonna begin with saying you’re the bestest,lovliest,nicest,sweetest and cuteessssttt person on earth,and your smile is so cuteeeee.In your words and mine you are an angel(sometimes an aag ka gola too(hot yk)).And I love the time I spend with you talking to you,even if we are talking for a long time,I just wanna keep talking.I loved all the times we met this summer and I hope we will make more pretty pretty memories like that in the future.We are definitely having a shawarma and a cheesecake and Italy ka pizza and a lot of foodddd. I also love watching moviesss w you and you’re the only person whose song recommendations I listen to,you’re the only person who can send me a 1000 reels and get a reply or a reaction on all of them .You are my red,blue,green,yellow,pink and every other colour possible.I’ll happily lose every election of my life if I get to be with you foreverrr.And you are my favourite person,my favourite notification,the one my eyes look for,and my bestfriend.And yeah I never show this or say it but I get JEALOUSSSSS,jealous when I can’t be with you and you go on walk with your college peeps,sing with them,pull all nighters with them AGHHHHH,and we have to go some nights without talking uhhh,but okay “sorrttt h”.
+        </p>
+        <p>
+          I had said once that you are my comfort person and that still stands,whenever I am having an unproductive day ,unconsciously my mind just wants to talk to you,so thankyouuuuuuu.And you are the biggest pagluuuuuu in the world to think that I think of you as irritating or annoying ya anything else,so get that out of your head. Some advice that I can give you for this year is ,sort your priorities,meet people but choose friends wisely,have fun but also be responsible,and speak your heart outttt,expresss kro happy sad kuch bhi,kaafi easy hojaegaa and continue talking to me hehehe.
+        </p>
+        <p>
+          I am also sorry for all the times I annoy you,or when I forget stuff or when I hurt you,I swear I never do any of such stuff intentionally,and I am still learning,so yeah bear with me.I’d also like to add that if ever you need anything you know you can come to me,I might not have all the solutions biut I will always try.I hope this year goes the way you want it to go and even beyond.
+        </p>
+         <p>
+          So yeah that’s it,enjoy your birthdayyy,have funnn and  all the bestttt and take-,oh no chill on that I’ll take care of you.Also we are going to Jaipur and manali and Italy once I get my internnn.
+        </p>
+        <div class="signature">
+          Your dearest, <br>
+          — Izuku.
+        </div>
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    Made with ♥ in pink & purple (and cats 🐱💜).
+  </footer>
+
+  <script>
+    // Fill today's date
+    (function(){
+      const el = document.getElementById('today');
+      try{
+        const now = new Date();
+        const nice = new Intl.DateTimeFormat('en', {
+          year:'numeric', month:'long', day:'numeric'
+        }).format(now);
+        el.textContent = nice;
+        el.setAttribute('datetime', now.toISOString().split('T')[0]);
+      }catch(e){}
+    })();
+  </script>
+
+  <style>
+    @media print{
+      .floaters, footer, .stamp { display:none !important; }
+      body{ background:#fff; }
+      .paper{ box-shadow:none; border:1px solid #f3c6df; }
+    }
+  </style>
+</body>
+</html>

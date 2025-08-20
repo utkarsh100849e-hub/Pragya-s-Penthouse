@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Free Placement Layout</title>
+  <style>
+    body {
+      margin: 0;
+      background: #000;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden; /* prevent expansion */
+      position: relative;
+    }
+    img {
+      width: 100px; /* default size */
+      height: auto;
+      position: absolute;
+      transform-origin: center center;
+    }
+  </style>
+</head>
+<body>
+  <!-- 19 drawings -->
+  <img src="drawings/help.png" alt="Drawing 01">
+  <img src="drawings/drawing-02.png" alt="Drawing 02">
+  <img src="drawings/drawing-03.png" alt="Drawing 03">
+  <img src="drawings/drawing-04.png" alt="Drawing 04">
+  <img src="drawings/drawing-05.png" alt="Drawing 05">
+  <img src="drawings/drawing-06.png" alt="Drawing 06">
+  <img src="drawings/drawing-07.png" alt="Drawing 07">
+  <img src="drawings/drawing-08.png" alt="Drawing 08">
+  <img src="drawings/drawing-09.png" alt="Drawing 09">
+  <img src="drawings/drawing-10.png" alt="Drawing 10">
+  <img src="drawings/drawing-11.png" alt="Drawing 11">
+  <img src="drawings/drawing-12.png" alt="Drawing 12">
+  <img src="drawings/drawing-13.png" alt="Drawing 13">
+  <img src="drawings/drawing-14.png" alt="Drawing 14">
+  <img src="drawings/drawing-15.png" alt="Drawing 15">
+  <img src="drawings/drawing-16.png" alt="Drawing 16">
+  <img src="drawings/drawing-17.png" alt="Drawing 17">
+  <img src="drawings/drawing-18.png" alt="Drawing 18">
+  <img src="drawings/drawing-19.png" alt="Drawing 19">
+
+  <script>
+    const imgs = document.querySelectorAll('body > img');
+
+    // 👉 Customize placement here
+    const tops = [500, 80, 170,570, 300, 140,                           450, 110, 180, 50,                      330,                    290,                         280,                 600,                  80, 300, 100, 440, 450]; // px from top
+    const lefts = [680, 450, 280, 1030, 730, 1130,                   510, 80, 1000, 930,          930,                    480,                  1330,            430,              1230, 1180, 680, 1330, 180]; // px from left
+    const angles = [0, -40, -15, 20, 5, -10,                     -70, 0, 10, -5,                    -30,             10,               8,                   0,                    55, 3, 168, -100, 40];
+                const scales = [2, 3, 3, 4, 3, 0.8,                  2.8, 2, 3, 2,                   3.2,                         2.5,                   2,                   2.4, 2, 3, 4, 2.7,4.5];
+
+    imgs.forEach((img, i) => {
+      img.style.top = `${tops[i]}px`;
+      img.style.left = `${lefts[i]}px`;
+      img.style.transform = `rotate(${angles[i]}deg) scale(${scales[i]})`;
+    });
+
+    /*
+      HOW TO CUSTOMIZE:
+      - Change `tops[]` for vertical position (px from top).
+      - Change `lefts[]` for horizontal position (px from left).
+      - Change `angles[]` for rotation (degrees).
+      - Change `scales[]` for size multiplier.
+      Everything stays inside the fixed 100vh × 100vw screen.
+    */
+  </script>
+</body>
+</html>

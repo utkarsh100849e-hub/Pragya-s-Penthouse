@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Interactive Living Room</title>
+<style>
+body {
+  margin: 0;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  background: linear-gradient(to bottom right, #ff9ac9, #ff6ec7);
+}
+
+/* container to hold image + overlays */
+.container {
+  position: relative;
+  display: inline-block;
+}
+
+/* the main image */
+.xx {
+  display: block;
+  object-fit: contain;
+  max-width: 100%;
+  height: auto;
+}
+
+/* hotspot buttons */
+.hotspot {
+  position: absolute;
+  cursor: pointer;
+  background: transparent;   /* fully invisible */
+  border: none;              /* no border */
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+  <img class="xx" src="hallway_converted.jpg" alt="Living Room">
+
+  <!-- Example hotspots with custom links -->
+  <div id="door" class="hotspot" data-link="gameroom.html" style="top: 100px; left: 60px; width: 255px; height: 900px;"></div>
+  <div id="window" class="hotspot" data-link="letter.html" style="top: 300px; left: 480px; width: 255px; height: 450px;"></div>
+  <div id="cake1" class="hotspot" data-link="musicroom.html" style="top: 230px; left: 1220px; width: 245px; height: 440px;"></div>
+  <div id="cake2" class="hotspot" data-link="wordlewall.html" style="top: 300px; left: 790px; width: 245px; height: 440px;"></div>
+</div>
+
+<script>
+document.querySelectorAll('.hotspot').forEach(hotspot => {
+  hotspot.addEventListener('click', () => {
+    const link = hotspot.getAttribute('data-link');
+    if (link) {
+      window.location.href = link; // navigate to link
+    }
+  });
+});
+</script>
+
+</body>
+</html>

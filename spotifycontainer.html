@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Pragya’s 19 Memories</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root{
+      --bg:#000;
+      --bg-2:#121212;
+      --sidebar:#181818;
+      --line:#282828;
+      --text:#fff;
+      --muted:#b3b3b3;
+      --accent:#1DB954;
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
+
+    /* ---------- LANDING (Apple Music-like) ---------- */
+    .landing-view{min-height:100vh;padding:40px}
+    .playlist-header{display:flex;gap:28px;align-items:center;margin-bottom:36px}
+    .playlist-cover{
+      width:220px;height:220px;border-radius:14px;flex:0 0 220px;
+      background:url("Images/cute-animal-little-cat-seamless-pattern-wallpaper-with-design-light-pink-vector.jpg") center/cover no-repeat;
+      box-shadow:0 20px 40px rgba(0,0,0,.45);cursor:pointer
+    }
+    .playlist-info h1{font-size:2.6rem;margin:0 0 10px}
+    .playlist-info p{margin:0;color:#aaa;max-width:640px;line-height:1.6}
+
+    .song-table{width:100%;border-collapse:collapse;border-top:1px solid var(--line)}
+    .song-table th,.song-table td{padding:14px 12px;border-bottom:1px solid var(--line);text-align:left}
+    .song-table th{color:#8b8b8b;font-weight:500;letter-spacing:.02em}
+    .song-row{cursor:pointer;transition:background .2s}
+    .song-row:hover{background:#0c0c0c}
+    .song-cell{display:flex;align-items:center;gap:12px}
+    .song-cover-sm{
+      width:50px;height:50px;border-radius:8px;flex:0 0 50px;
+      background:url("Images/cute-animal-little-cat-seamless-pattern-wallpaper-with-design-light-pink-vector.jpg") center/cover no-repeat
+    }
+
+    /* ---------- PLAYER (Spotify-like layout + Lime Card) ---------- */
+    .player-view{display:none;grid-template-columns:280px 1fr;height:100vh;background:var(--bg-2)}
+    /* Sidebar */
+    .sidebar{background:var(--sidebar);border-right:1px solid var(--line);overflow:auto}
+    .sidebar h2{margin:0;padding:20px;font-size:1rem;color:var(--muted);text-transform:uppercase;letter-spacing:.12em}
+    .sidebar-list{display:flex;flex-direction:column}
+    .sidebar-item{
+      display:flex;align-items:center;gap:12px;padding:12px 16px;cursor:pointer;
+      border-left:3px solid transparent;transition:background .15s,border-color .15s
+    }
+    .sidebar-item:hover{background:#202020}
+    .sidebar-item.active{background:#222;border-left-color:var(--accent)}
+    .sidebar-thumb{
+      width:44px;height:44px;border-radius:6px;flex:0 0 44px;
+      background:url("Images/cute-animal-little-cat-seamless-pattern-wallpaper-with-design-light-pink-vector.jpg") center/cover no-repeat
+    }
+    .sidebar-title{font-size:.95rem;color:#ddd;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+    /* Main player area */
+    .player-main{
+      display:flex;flex-direction:column;height:100%;align-items:center;overflow:auto;
+      padding:28px 24px 24px;gap:18px;position:relative
+    }
+    .back-btn{
+      position:absolute;left:24px;top:18px;background:none;border:0;color:var(--muted);
+      font-size:.95rem;cursor:pointer;transition:color .2s
+    }
+    .back-btn:hover{color:var(--accent)}
+
+    /* ------- Lime player card (your container) ------- */
+    .player-card {
+      background: rgb(52, 66, 20);            /* requested color */
+      border-radius: 20px;
+      padding: 30px;
+      width: min(720px, 92vw);
+      height: 560px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;          /* even spacing */
+      box-shadow: 0 12px 32px rgba(0,0,0,0.35);
+    }
+    .player-cover {
+      width: 100%;
+      height: 280px;                           /* big cover nearly full width */
+      border-radius: 15px;
+      background: #222 center/cover no-repeat;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.35);
+    }
+    .song-info {
+      width: 100%;
+      margin-top: 10px;
+    }
+    .player-title {
+      font-size: 1.2rem;                       /* smaller as requested */
+      font-weight: 700;
+      margin-bottom: 4px;
+      color: #fff;
+      text-align: left;                         /* left aligned under image */
+    }
+    .player-author {
+      font-size: 0.9rem;
+      color: #ccc;
+      text-align: left;
+    }
+
+    /* Progress (reusing your IDs for JS) */
+    .progress{
+      width: 100%;
+      display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:10px;margin-top:6px
+    }
+    .time{font-variant-numeric:tabular-nums;color:#fff;font-size:.8rem}
+    .bar-wrap{position:relative;height:5px;background:rgba(255,255,255,0.2);border-radius:999px;cursor:pointer}
+    .bar{
+      position:absolute;left:0;top:0;height:100%;background:rgba(255,255,255,0.12);border-radius:999px;width:100%
+    }
+    .bar-fill{
+      position:absolute;left:0;top:0;height:100%;background:var(--accent);border-radius:999px;width:0%
+    }
+    .bar-handle{
+      position:absolute;top:50%;transform:translate(-50%,-50%);
+      width:12px;height:12px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 6px rgba(29,185,84,.15);pointer-events:none
+    }
+
+    /* Controls */
+    .controls{
+      display:flex;align-items:center;justify-content:center;gap:24px;margin-top:6px
+    }
+    .ctrl{
+      width:52px;height:52px;border-radius:50%;border:1px solid #2a2a2a;background:#1a1a1a;color:#e6e6e6;
+      font-size:1.2rem;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:transform .12s,box-shadow .12s
+    }
+    .ctrl:hover{transform:scale(1.06)}
+    .ctrl.play{
+      width:72px;height:72px;background:var(--accent);color:#000;border:none;font-size:1.8rem;
+      box-shadow:0 10px 28px rgba(29,185,84,.35)
+    }
+
+    /* Sound wave at the bottom (fills space nicely) */
+    .sound-bar {
+      display: flex;
+      gap: 5px;
+      align-items: flex-end;
+      height: 35px;
+      margin-top: 6px;
+    }
+    .bar-col {
+      width: 5px;
+      background: var(--accent);
+      border-radius: 3px;
+      animation: bounce 1s infinite ease-in-out;
+    }
+    .bar-col:nth-child(1){animation-delay:0s;height:12px}
+    .bar-col:nth-child(2){animation-delay:.15s;height:20px}
+    .bar-col:nth-child(3){animation-delay:.3s;height:28px}
+    .bar-col:nth-child(4){animation-delay:.45s;height:20px}
+    .bar-col:nth-child(5){animation-delay:.6s;height:12px}
+    @keyframes bounce{0%,100%{transform:scaleY(.6)}50%{transform:scaleY(1.2)}}
+
+    .description{
+      color:#e9e9e9;max-width:640px;text-align:center;line-height:1.55;margin:4px 0 0
+    }
+
+    /* Show/Hide animations */
+    .hidden{display:none!important}
+    .fade-in{animation:fade .35s ease both}
+    @keyframes fade{from{opacity:0}to{opacity:1}}
+
+    /* Responsive */
+    @media (max-width:900px){
+      .player-view{grid-template-columns:1fr}
+      .sidebar{display:none}
+      .back-btn{position:static;align-self:flex-start;margin-bottom:6px}
+      .player-card{height:auto}
+      .player-cover{height:min(68vw,320px)}
+    }
+  </style>
+</head>
+<body>
+  <!-- LANDING VIEW -->
+  <section id="landing" class="landing-view fade-in">
+    <div class="playlist-header">
+      <div id="openFromCover" class="playlist-cover" title="Open playlist"></div>
+      <div class="playlist-info">
+        <h1>Pragya’s 19 Memories</h1>
+        <p>19 moments, 19 songs — a tiny museum of us. Click a memory to open the player 💚</p>
+      </div>
+    </div>
+
+    <table class="song-table">
+      <thead>
+        <tr>
+          <th>Cover</th>
+          <th>Title</th>
+          <th>Author</th>
+          <th>Duration</th>
+        </tr>
+      </thead>
+      <tbody id="landingTable"></tbody>
+    </table>
+  </section>
+
+  <!-- PLAYER VIEW -->
+  <section id="player" class="player-view">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <h2>Memories</h2>
+      <div id="sidebarList" class="sidebar-list"></div>
+    </aside>
+
+    <!-- Main player -->
+    <main class="player-main">
+      <button id="backBtn" class="back-btn">← Back to Playlist</button>
+
+      <!-- LIME PLAYER CARD -->
+      <div class="player-card">
+        <div id="playerCover" class="player-cover"></div>
+
+        <div class="song-info">
+          <div id="trackTitle" class="player-title">Select a memory</div>
+          <div id="trackArtist" class="player-author"></div>
+        </div>
+
+        <!-- Progress -->
+        <div class="progress" id="progressWrap">
+          <span id="timeCur" class="time">0:00</span>
+          <div id="barWrap" class="bar-wrap" aria-label="Seek">
+            <div class="bar"></div>
+            <div id="barFill" class="bar-fill"></div>
+            <div id="barHandle" class="bar-handle" style="left:0%"></div>
+          </div>
+          <span id="timeDur" class="time">0:00</span>
+        </div>
+
+        <!-- Controls -->
+        <div class="controls">
+          <button id="prevBtn" class="ctrl" title="Previous">⏮</button>
+          <button id="playBtn" class="ctrl play" title="Play/Pause">▶</button>
+          <button id="nextBtn" class="ctrl" title="Next">⏭</button>
+        </div>
+
+        <!-- Animated sound bars -->
+        <div class="sound-bar">
+          <div class="bar-col"></div>
+          <div class="bar-col"></div>
+          <div class="bar-col"></div>
+          <div class="bar-col"></div>
+          <div class="bar-col"></div>
+        </div>
+
+        <p id="description" class="description">Click a memory from the left list to begin playing.</p>
+        <audio id="audio"></audio>
+      </div>
+    </main>
+  </section>
+
+  <script>
+    // ------- Data (placeholders; swap with your real 19 items) -------
+    const defaultCover = "Images/cute-animal-little-cat-seamless-pattern-wallpaper-with-design-light-pink-vector.jpg";
+    const songs = [
+      { title: "Memory 1 — First Coffee", author: "You & Pragya", duration: "3:21", cover: defaultCover, description: "That cozy corner table where time slowed down.", audio: "songs/song1.mp3" },
+      { title: "Memory 2 — Late Night Calls", author: "You & Pragya", duration: "2:58", cover: defaultCover, description: "Laughing till sunrise. Our favorite soundtrack.", audio: "songs/song2.mp3" },
+      { title: "Memory 3 — Rain Walk",       author: "You & Pragya", duration: "3:44", cover: defaultCover, description: "Umbrella optional. Smiles mandatory.", audio: "songs/song3.mp3" },
+      { title: "Memory 4 — Birthday Wish",   author: "You & Pragya", duration: "3:07", cover: defaultCover, description: "Nineteen candles, infinite wishes.", audio: "songs/song4.mp3" },
+      { title: "Memory 5 — Movie Night",     author: "You & Pragya", duration: "4:12", cover: defaultCover, description: "Popcorn, pillows, and pause to laugh.", audio: "songs/song5.mp3" },
+      // ...add up to 19
+    ];
+
+    // ------- Elements -------
+    const landing = document.getElementById("landing");
+    const player = document.getElementById("player");
+    const openFromCover = document.getElementById("openFromCover");
+    const landingTable = document.getElementById("landingTable");
+    const sidebarList = document.getElementById("sidebarList");
+
+    const backBtn = document.getElementById("backBtn");
+    const playerCover = document.getElementById("playerCover");
+    const trackTitle = document.getElementById("trackTitle");
+    const trackArtist = document.getElementById("trackArtist");
+    const description = document.getElementById("description");
+
+    const audio = document.getElementById("audio");
+    const playBtn = document.getElementById("playBtn");
+    const prevBtn = document.getElementById("prevBtn");
+    const nextBtn = document.getElementById("nextBtn");
+
+    const barWrap = document.getElementById("barWrap");
+    const barFill = document.getElementById("barFill");
+    const barHandle = document.getElementById("barHandle");
+    const timeCur = document.getElementById("timeCur");
+    const timeDur = document.getElementById("timeDur");
+
+    let current = -1;
+    let sidebarItems = [];
+
+    // ------- Helpers -------
+    const fmt = s => {
+      if (!isFinite(s)) return "0:00";
+      const m = Math.floor(s/60);
+      const sec = Math.floor(s%60).toString().padStart(2,"0");
+      return `${m}:${sec}`;
+    };
+
+    function renderLanding(){
+      landingTable.innerHTML = "";
+      songs.forEach((song, i) => {
+        const tr = document.createElement("tr");
+        tr.className = "song-row";
+        tr.innerHTML = `
+          <td><div class="song-cell"><div class="song-cover-sm" style="background-image:url('${song.cover}')"></div></div></td>
+          <td>${song.title}</td>
+          <td>${song.author}</td>
+          <td>${song.duration}</td>
+        `;
+        tr.addEventListener("click", () => openPlayer(i));
+        landingTable.appendChild(tr);
+      });
+    }
+
+    function renderSidebar(){
+      sidebarList.innerHTML = "";
+      sidebarItems = songs.map((song, i) => {
+        const row = document.createElement("div");
+        row.className = "sidebar-item";
+        row.innerHTML = `
+          <div class="sidebar-thumb" style="background-image:url('${song.cover}')"></div>
+          <div class="sidebar-title" title="${song.title}">${song.title}</div>
+        `;
+        row.addEventListener("click", ()=> loadSong(i, /*autoplay*/ true));
+        sidebarList.appendChild(row);
+        return row;
+      });
+    }
+
+    function openPlayer(index){
+      landing.classList.add("hidden");
+      player.style.display = "grid";
+      player.classList.add("fade-in");
+      loadSong(index, true);
+    }
+
+    function highlightSidebar(){
+      sidebarItems.forEach((el, idx) => {
+        el.classList.toggle("active", idx === current);
+      });
+    }
+
+    function loadSong(index, autoplay=false){
+      current = index;
+      const s = songs[current];
+      playerCover.style.backgroundImage = `url('${s.cover}')`;
+      trackTitle.textContent = s.title;
+      trackArtist.textContent = s.author;
+      description.textContent = s.description;
+      audio.src = s.audio || "";
+      audio.currentTime = 0;
+      updateProgress(0, audio.duration || 0);
+      timeCur.textContent = "0:00";
+      timeDur.textContent = "0:00";
+      playBtn.textContent = "▶";
+      highlightSidebar();
+
+      if (autoplay && audio.src) {
+        audio.play().then(() => playBtn.textContent = "⏸").catch(()=>{ /* autoplay blocked; ignore */ });
+      }
+    }
+
+    function updateProgress(cur, dur){
+      const pct = dur ? (cur/dur)*100 : 0;
+      barFill.style.width = `${pct}%`;
+      barHandle.style.left = `${pct}%`;
+      timeCur.textContent = fmt(cur);
+      timeDur.textContent = fmt(dur || audio.duration || 0);
+    }
+
+    // ------- Events -------
+    // Landing cover acts like "open first"
+    openFromCover.addEventListener("click", () => openPlayer(0));
+
+    backBtn.addEventListener("click", () => {
+      audio.pause();
+      audio.currentTime = 0;
+      playBtn.textContent = "▶";
+      player.classList.remove("fade-in");
+      player.style.display = "none";
+      landing.classList.remove("hidden");
+      landing.classList.add("fade-in");
+      // reset labels
+      current = -1;
+      playerCover.style.backgroundImage = "";
+      trackTitle.textContent = "Select a memory";
+      trackArtist.textContent = "";
+      description.textContent = "Click a memory from the left list to begin playing.";
+      updateProgress(0,0);
+    });
+
+    playBtn.addEventListener("click", () => {
+      if (!audio.src) return;
+      if (audio.paused) {
+        audio.play();
+        playBtn.textContent = "⏸";
+      } else {
+        audio.pause();
+        playBtn.textContent = "▶";
+      }
+    });
+
+    prevBtn.addEventListener("click", () => {
+      if (songs.length === 0) return;
+      const nextIndex = current <= 0 ? songs.length - 1 : current - 1;
+      loadSong(nextIndex, true);
+    });
+
+    nextBtn.addEventListener("click", () => {
+      if (songs.length === 0) return;
+      const nextIndex = (current + 1) % songs.length;
+      loadSong(nextIndex, true);
+    });
+
+    // Progress updates
+    audio.addEventListener("timeupdate", () => updateProgress(audio.currentTime, audio.duration));
+    audio.addEventListener("loadedmetadata", () => updateProgress(audio.currentTime, audio.duration));
+    audio.addEventListener("ended", () => {
+      playBtn.textContent = "▶";
+      // Autoplay next
+      const nextIndex = (current + 1) % songs.length;
+      loadSong(nextIndex, true);
+    });
+
+    // Seek by clicking/tapping bar
+    function seekFromEvent(e){
+      const rect = barWrap.getBoundingClientRect();
+      const x = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
+      const ratio = Math.max(0, Math.min(1, x / rect.width));
+      if (isFinite(audio.duration)) {
+        audio.currentTime = ratio * audio.duration;
+        updateProgress(audio.currentTime, audio.duration);
+      }
+    }
+    barWrap.addEventListener("click", seekFromEvent);
+    // Drag seek (mouse)
+    let dragging=false;
+    barWrap.addEventListener("mousedown",(e)=>{dragging=true;seekFromEvent(e)});
+    window.addEventListener("mousemove",(e)=>{ if(dragging) seekFromEvent(e) });
+    window.addEventListener("mouseup",()=> dragging=false);
+    // Drag seek (touch)
+    barWrap.addEventListener("touchstart",seekFromEvent,{passive:true});
+    barWrap.addEventListener("touchmove",seekFromEvent,{passive:true});
+
+    // ------- Init -------
+    renderLanding();
+    renderSidebar();
+  </script>
+</body>
+</html>          

@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Gift Challenge Game — Final Fix</title>
+  <style>
+    :root{
+      --bg:#fdf6e3;
+      --card-w:120px;
+      --card-h:160px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: var(--bg);
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+    }
+
+    /* header */
+    #header {
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      background: var(--bg);
+      padding: 12px 0;
+      margin-bottom: 10px;
+      position: relative;
+    }
+    #timer {
+      width: 90px;
+      height: 90px;
+      border-radius: 50%;
+      background: linear-gradient(135deg,#ffd54f,#ffca28);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-weight:700;
+      font-size:28px;
+      color:#2b2b2b;
+      box-shadow: 0 8px 18px rgba(0,0,0,0.18);
+    }
+    #play-again {
+      position: absolute;
+      left: 20px;
+      top: 20px;
+      padding: 8px 14px;
+      font-size: 16px;
+      font-weight: bold;
+      border: none;
+      border-radius: 8px;
+      background: #ffca28;
+      cursor: pointer;
+      display: none;
+    }
+
+    #game-container{
+      flex:1;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding: 20px;
+      width:100%;
+    }
+
+    #grid{
+      display:flex;
+      flex-wrap: wrap;
+      gap: 30px 40px;
+      justify-content:center;
+      align-items: center;
+      max-width: 980px;
+    }
+
+    .card{
+      width:var(--card-w);
+      height:var(--card-h);
+      perspective:1000px;
+      cursor:pointer;
+      transform: rotate(var(--rand-angle)) translate(var(--rand-x), var(--rand-y));
+    }
+
+    .card-inner{
+      width:100%;
+      height:100%;
+      position:relative;
+      transform-style:preserve-3d;
+      transition: transform 0.45s cubic-bezier(.2,.9,.3,1);
+    }
+
+    .card.face-down .card-inner{
+      transform: rotateY(180deg);
+    }
+
+    .card-front, .card-back{
+      position:absolute;
+      inset:0;
+      border-radius:12px;
+      backface-visibility:hidden;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:8px;
+      font-weight:700;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+      border: 2px solid rgba(0,0,0,0.12);
+      user-select:none;
+    }
+
+    .card-front{
+      background: #ffffff;
+      color:#222;
+      transform: rotateY(0deg);
+      font-size:14px;
+      text-align:center;
+    }
+    .card-back{
+      background: #333;
+      color: #fff;
+      transform: rotateY(180deg);
+      font-size:20px;
+    }
+
+    .card.selected .card-front{ box-shadow: 0 6px 18px rgba(0,0,0,0.18); }
+
+    /* --- Platforms --- */
+    .side-platform {
+      position: fixed;
+      top: 40px;
+      width: 220px;
+      height: calc(100% - 80px);
+      background: linear-gradient(to bottom, #fff59d, #fdd835);
+      border-radius: 18px;
+      box-shadow: 0 12px 30px rgba(0,0,0,0.18);
+      padding: 12px;
+      overflow-y: auto;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+      align-items:center;
+      z-index:10;
+    }
+    #platform { right: 20px; }   
+    #left-platform { left: 20px; } 
+
+    #bottom-platform{
+      position: fixed;
+      bottom: 0;
+      left: 240px;
+      right: 240px;
+      background: linear-gradient(to right, #ffe082, #ffca28);
+      box-shadow: 0 -6px 20px rgba(0,0,0,0.2);
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      justify-content:center;
+      padding: 12px;
+      border-top-left-radius: 16px;
+      border-top-right-radius: 16px;
+      z-index:5;
+    }
+
+    .collected-card{
+      width:90px;
+      height:120px;
+      background: lightpink;
+      border-radius:12px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      border:2px solid rgba(0,0,0,0.12);
+      font-weight:700;
+      color:#222;
+      cursor:pointer;
+      text-align:center;
+      padding: 6px;
+    }
+
+    /* Final view */
+    #final-display {
+      display:none;
+      flex-wrap:wrap;
+      gap:20px;
+      justify-content:center;
+      padding:30px;
+      max-width: 1000px;
+    }
+    #final-display .collected-card {
+      width:150px;
+      height:200px;
+      font-size:16px;
+      background: #fff;
+      cursor:default;
+    }
+  </style>
+</head>
+<body>
+  <div id="header">
+    <button id="play-again">Play Again</button>
+    <div id="timer">15</div>
+  </div>
+  <div id="game-container"><div id="grid"></div></div>
+  
+  <!-- left + right + bottom platforms -->
+  <div id="left-platform" class="side-platform"></div>
+  <div id="platform" class="side-platform"></div>
+  <div id="bottom-platform"></div>
+
+  <!-- final display -->
+  <div id="final-display"></div>
+
+<script>
+const gifts = [
+  "100 movie nights with movies of your choice🥰",
+  "Unlimited hugs for lifeee.",
+  "Unlimited foot rubs(mere saath vo mat krna🥰)",
+  "A meal completely prepared by me.",
+  "Make a wish",
+  "A personal singer just for you🥰"
+];
+const challenges = [
+  "Make a very weird face and send me a picture.",
+  "Change your insta username to something of my choice.",
+  "Send me a voice recording of you singing.",
+  "Tell me of an embarrassing incident from school.",
+  "Invite me to lunch.",
+  "Give me a flying kissie😘"
+];
+const drawing=[
+  "gamecards/pic1.jpg","gamecards/pic2.jpg","gamecards/pic3.jpg","gamecards/pic4.jpg","gamecards/pic5.jpg","gamecards/pic6.jpg","gamecards/pic7.png"
+];
+
+const cardsData = [];
+gifts.forEach(g => cardsData.push({type:"Gift", label:g}));
+challenges.forEach(c => cardsData.push({type:"Challenge", label:c}));
+drawing.forEach(c => cardsData.push({type:"Drawing", label:c}));
+
+cardsData.sort(()=>Math.random()-0.5);
+
+const grid = document.getElementById('grid');
+const platform = document.getElementById('platform');          
+const leftPlatform = document.getElementById('left-platform'); 
+const bottomPlatform = document.getElementById('bottom-platform'); 
+const timerEl = document.getElementById('timer');
+const finalDisplay = document.getElementById('final-display');
+const playAgainBtn = document.getElementById('play-again');
+
+let selected = [];
+let gameActive = false;
+let giftsCollected = 0;
+
+cardsData.forEach((d, idx)=>{
+  const card = document.createElement('div');
+  card.className = 'card';
+  card.dataset.type = d.type;
+  card.dataset.label = d.label;
+  card.dataset.index = idx;
+
+  card.style.setProperty('--rand-angle', (Math.random()*10-5).toFixed(1) + "deg");
+  card.style.setProperty('--rand-x', (Math.random()*10-5).toFixed(1) + "px");
+  card.style.setProperty('--rand-y', (Math.random()*10-5).toFixed(1) + "px");
+
+  // 🔥 FIX: show image for drawings
+  card.innerHTML = `
+    <div class="card-inner">
+      <div class="card-front">${
+        d.type === "Drawing"
+          ? `<img src="${d.label}" style="width:100%;height:100%;object-fit:cover;border-radius:10px;">`
+          : d.label
+      }</div>
+      <div class="card-back">?</div>
+    </div>
+  `;
+  grid.appendChild(card);
+});
+
+grid.addEventListener('click', (ev)=>{
+  const card = ev.target.closest('.card');
+  if (!card) return;
+  flipCard(card);
+});
+
+function flipCard(card){
+  if (!gameActive) return;
+  if (!card.classList.contains('face-down')) return;
+  if (selected.length >= 2) return;
+
+  card.classList.remove('face-down');
+  card.classList.add('selected');
+  selected.push(card);
+
+  if (selected.length === 2){
+    setTimeout(evaluatePair, 700);
+  }
+}
+
+function evaluatePair(){
+  const a = selected[0];
+  const b = selected[1];
+  if (!a || !b){ resetSel(); return; }
+  const t1 = a.dataset.type;
+  const t2 = b.dataset.type;
+
+  function collect(cardEl, typeLabel){
+    const el = document.createElement('div');
+    el.className = 'collected-card';
+    el.dataset.type = typeLabel;
+    el.dataset.reveal = cardEl.dataset.label;
+
+    // 🔥 FIX: show drawings as images on reveal
+    el.innerHTML = (typeLabel === "Drawing")
+      ? `<img src="${cardEl.dataset.label}" style="width:100%;height:100%;object-fit:cover;border-radius:10px;">`
+      : "";
+
+    el.addEventListener('click', ()=>{
+      if (typeLabel === "Drawing") return; // drawings already visible
+      el.textContent = el.dataset.reveal;
+      el.style.background = "#fff";
+    });
+
+    if (typeLabel === "Gift") {
+      platform.appendChild(el);
+      giftsCollected++;
+      if (giftsCollected >= 6){
+        setTimeout(endGame, 500);
+      }
+    }
+    else if (typeLabel === "Challenge") {
+      leftPlatform.appendChild(el);
+    }
+    else if (typeLabel === "Drawing") {
+      bottomPlatform.appendChild(el);
+    }
+    if (cardEl.parentNode) cardEl.remove();
+  }
+
+  if (t1 === t2){
+    collect(a, t1);
+    collect(b, t2);
+  }
+  else if ((t1==="Gift" && t2==="Challenge") || (t1==="Challenge" && t2==="Gift")){
+    const challengeCard = (t1==="Challenge") ? a : b;
+    const other = (challengeCard === a) ? b : a;
+    collect(challengeCard, "Challenge");
+    flipBack(other);
+  }
+  else if ((t1==="Challenge" && t2==="Drawing") || (t1==="Drawing" && t2==="Challenge")){
+    const drawingCard = (t1==="Drawing") ? a : b;
+    const other = (drawingCard === a) ? b : a;
+    collect(drawingCard, "Drawing");
+    flipBack(other);
+  }
+  else if ((t1==="Gift" && t2==="Drawing") || (t1==="Drawing" && t2==="Gift")){
+    const drawingCard = (t1==="Drawing") ? a : b;
+    const other = (drawingCard === a) ? b : a;
+    collect(drawingCard, "Drawing");
+    flipBack(other);
+  }
+  else {
+    [a,b].forEach(c=>flipBack(c));
+  }
+  resetSel();
+}
+
+function flipBack(card){
+  if (card.parentNode){
+    card.classList.remove('selected');
+    card.classList.add('face-down');
+  }
+}
+function resetSel(){
+  selected.forEach(c => c.classList.remove('selected'));
+  selected = [];
+}
+
+function endGame(){
+  document.body.style.background = "linear-gradient(to bottom right, #fff9c4, #ffe082, #ffca28)";
+
+  [grid, platform, leftPlatform, bottomPlatform, timerEl].forEach(el => el.style.display = "none");
+
+  document.querySelectorAll('.collected-card').forEach(card=>{
+    if (card.dataset.type === "Drawing") {
+      card.innerHTML = `<img src="${card.dataset.reveal}" style="width:100%;height:100%;object-fit:cover;border-radius:10px;">`;
+    } else {
+      card.textContent = card.dataset.reveal;
+      card.style.background = "#fff";
+    }
+    finalDisplay.appendChild(card);
+  });
+
+  finalDisplay.style.display = "flex";
+  playAgainBtn.style.display = "block";
+}
+
+playAgainBtn.addEventListener('click', ()=> location.reload());
+
+/* memorization flow */
+document.querySelectorAll('.card').forEach(c => c.classList.remove('face-down'));
+let timeLeft = 15;
+timerEl.textContent = timeLeft;
+const countdown = setInterval(()=>{
+  timeLeft--;
+  if (timeLeft >= 0) timerEl.textContent = timeLeft;
+  if (timeLeft < 0){
+    clearInterval(countdown);
+    document.querySelectorAll('.card').forEach(c=>{
+      if (c.parentNode) c.classList.add('face-down');
+    });
+    setTimeout(()=> { gameActive = true; }, 200);
+    timerEl.textContent = "Go!";
+    setTimeout(()=> timerEl.style.display = 'none', 700);
+  }
+}, 1000);
+</script>
+</body>
+</html>

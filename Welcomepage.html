@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Pastel Split Background – Gate</title>
+  <style>
+    :root {
+      --pastel-pink: #ffd6e7;
+      --pastel-blue: #cfe8ff;
+      --shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+    }
+
+    * { box-sizing: border-box; }
+    html, body { height: 100%; margin: 0; }
+    body {
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+      background: linear-gradient(90deg, var(--pastel-pink) 0%, var(--pastel-pink) 48%, #f7e9ff 50%, var(--pastel-blue) 52%, var(--pastel-blue) 100%);
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+      min-height: 100vh;
+    }
+
+    .scene {
+      width: min(92vw, 1200px);
+      height: min(86vh, 900px);
+      position: relative;
+      display: grid;
+      place-items: center;
+      border-radius: 28px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.35), rgba(255,255,255,0.15));
+      backdrop-filter: blur(6px);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .gate {
+      max-height: min(70vh, 720px);
+      max-width: 86%;
+      filter: drop-shadow(0 18px 24px rgba(0,0,0,0.15));
+      transition: transform 700ms cubic-bezier(.2,.8,.2,1);
+    }
+    .gate:hover { transform: translateY(-4px); }
+    .left-top { margin-left: -15px; }   /* push row right */
+.left-bottom { margin-left: -5px; } /* push row left */
+.right-top { margin-right: 15px; }  /* push row left */
+.right-bottom { margin-right: -5px; }
+    .nameplate {
+      position: absolute;
+      right: clamp(12px, 4vw, 40px);
+      top: 50%;
+      transform: translateY(-50%);
+      min-width: 180px;
+      padding: 14px 24px;
+      border-radius: 999px;
+      background: #f5e6d3;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.10);
+      border: 2px solid rgba(255, 182, 193, 0.6);
+      color: #7a6a63;
+      font-weight: 600;
+      text-align: center;
+      font-size: 1.2rem;
+    }
+    .nameplate-text { color: black; text-decoration: none; }
+
+    /* Flower bundle container */
+    .flower-bundle {
+      position: absolute;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .left-bundle { left: 6%; bottom: 3%; }
+    .right-bundle { right: 6%; bottom: 3%; }
+
+    /* Each row */
+    .flower-row {
+      display: flex;
+    }
+    .flower-row img {
+      width: 60px;
+      height: 60px;
+      margin-left: -25px; /* overlap petals */
+      animation: floaty 9s ease-in-out infinite alternate;
+    }
+    .flower-row img:first-child { margin-left: 0; }
+
+    /* Sunflowers */
+    .sunflower {
+      position: absolute;
+      bottom: 3%;
+      width: 80px;
+      height: 80px;
+      animation: floaty 10s ease-in-out infinite alternate;
+    }
+    .sunflower.left1 { left: 1%; }
+    .sunflower.left2 { left: 14%; }
+    .sunflower.left3 { left: 17%; } /* new sunflower */
+    .sunflower.right1 { right: 6%; }
+    .sunflower.right2 { right: 18%; }
+
+    @keyframes floaty {
+      0%   { transform: translateY(0) scale(1) rotate(0deg); }
+      50%  { transform: translateY(-5px) scale(1.05) rotate(3deg); }
+      100% { transform: translateY(0) scale(1) rotate(-3deg); }
+    }
+
+    @media (max-width: 640px) {
+      .flower-row img { width: 40px; height: 40px; margin-left: -16px; }
+      .sunflower { width: 55px; height: 55px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="scene">
+    <a href="home.html"><img class="gate" src="Images/penthouse_door-removebg.png" alt="Pastel gate" /></a>
+    
+
+    <!-- Left bundle with separate rows -->
+    <div class="flower-bundle left-bundle">
+      <div class="flower-row left-top">
+        <img src="Images/lavender.gif">
+        <img src="Images/lightgreen.gif">
+        <img src="Images/greenish.gif">
+        <img src="Images/redflower-unscreen.gif"> <!-- extra flower -->
+      </div>
+      <div class="flower-row left-bottom">
+        <img src="Images/redflower-unscreen.gif">
+        <img src="Images/lavender.gif">
+        <img src="Images/lightgreen.gif">
+      </div>
+    </div>
+
+    <!-- Right bundle with separate rows -->
+    <div class="flower-bundle right-bundle">
+      <div class="flower-row right-top">
+        <img src="Images/lavender.gif">
+        <img src="Images/greenish.gif">
+        <img src="Images/lightgreen.gif">
+        <img src="Images/redflower-unscreen.gif"> <!-- extra flower -->
+      </div>
+      <div class="flower-row right-bottom">
+        <img src="Images/redflower-unscreen.gif">
+        <img src="Images/lavender.gif">
+        <img src="Images/greenish.gif">
+      </div>
+    </div>
+
+    <!-- 5 Sunflowers (3 left, 2 right) -->
+    <img src="Images/sunflower.gif" class="sunflower left1" />
+    <img src="Images/sunflower.gif" class="sunflower left2" />
+    <img src="Images/sunflower.gif" class="sunflower left3" /> <!-- new sunflower -->
+    <img src="Images/sunflower.gif" class="sunflower right1" />
+    <img src="Images/sunflower.gif" class="sunflower right2" />
+
+    <div class="nameplate"><a href="quiz.html" class="nameplate-text">Pragya's Penthouse</a></div>
+  </main>
+</body>
+</html>

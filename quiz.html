@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Scroll Questions</title>
+<style>
+    body {
+        margin: 0;
+        padding: 0;
+        background: linear-gradient(135deg, #40e0d0, #afeeee); /* turquoise gradient */
+        font-family: Arial, sans-serif;
+    }
+.scroll-text-container {
+    position: absolute;
+    top: 22%;     /* push down from the top of scroll */
+    left: 16%;    /* push in from left edge */
+    right: 15%;   /* push in from right edge */
+    bottom: 20%;  /* stop before bottom of scroll */
+
+    background: rgba(0,0,0,0); /* temporary dark background to adjust */
+    color: #3b2f2f;
+    padding: 10px;
+    text-align: center;
+    overflow-y: auto; /* adds a scrollbar if text is too long */
+    border-radius: 8px;
+}
+.scroll-text-container.transparent {
+    background: transparent;
+}
+
+/* When area is positioned correctly, make background invisible */
+.scroll-text-container.transparent {
+    background: transparent;
+}
+
+    /* Scroll container */
+    .scroll-slot {
+        position: relative;
+        width: 100%;
+        max-width: 700px; /* increased from 600px */
+        margin: 20px auto; /* reduced top margin */
+    }
+
+    .scroll-img {
+        width: 110%;  /* make slightly wider */
+        height: auto;
+        transform: scale(1.1); /* taller & wider proportionally */
+        display: block;
+        margin: 0 auto; /* center horizontally */
+    }
+
+    /* Scroll content area */
+    .scroll-content {
+        position: absolute;
+        top: 20%;
+        left: 10%;
+        right: 10%;
+        text-align: center;
+        font-size: 18px;
+        line-height: 1.4;
+        color: #000;
+    }
+
+    /* Question styling */
+    .question {
+        font-family: 'Georgia', serif;
+        font-weight: bold;
+        font-size: 1.5rem;
+        line-height: 1.4;
+        color: #3b2f2f; /* deep brown */
+        word-wrap: break-word;
+        margin-top: 40px; /* leave top scroll visible */
+        padding: 0 10px;
+        text-align: center;
+    }
+
+    /* Input box styled as slot */
+    .input-box input {
+        background-color: #90ee90; /* light green */
+        border: none;
+        padding: 8px 16px;
+        font-size: 16px;
+        width: 80%;
+        margin-top: 10px;
+        border-radius: 25px; /* slot shape */
+        outline: none;
+        transition: background-color 0.2s ease;
+    }
+
+    .input-box input:focus {
+        background-color: #7ed87e; /* darker green on focus */
+    }
+
+    /* Option buttons styled as slot */
+    .option1, .option2, .option3, .option4 {
+        margin: 8px 0;
+    }
+
+    .option1 button,
+    .option2 button,
+    .option3 button,
+    .option4 button,
+    .next-button button,
+    .skip-button button {
+        background-color: #90ee90; /* light green */
+        border: none;
+        padding: 10px 20px;
+        font-size: 16px;
+        border-radius: 25px; /* slot shape */
+        cursor: pointer;
+        transition: background-color 0.2s ease, transform 0.1s ease;
+    }
+
+    .option1 button:hover,
+    .option2 button:hover,
+    .option3 button:hover,
+    .option4 button:hover,
+    .next-button button:hover,
+    .skip-button button:hover {
+        background-color: #7ed87e; /* darker green on hover */
+        transform: scale(1.05);
+    }
+
+    /* Statement text */
+    .Statement {
+        margin-top: 20px;
+        font-style: italic;
+    }
+
+    /* Next button container */
+    .next-button {
+        margin-top: 20px;
+    }
+</style>
+<style>
+    body {
+        margin: 0;
+        padding: 0;
+        background: linear-gradient(135deg, #40e0d0, #afeeee); /* turquoise gradient */
+        font-family: Arial, sans-serif;
+    }
+
+    /* Scroll container */
+    .scroll-slot {
+        position: relative;
+        width: 100%;
+        max-width: 700px; /* increased from 600px */
+        margin: 20px auto; /* reduced top margin */
+    }
+
+    .scroll-img {
+        width: 110%;  /* make slightly wider */
+        height: auto;
+        transform: scale(1.1); /* taller & wider proportionally */
+        display: block;
+        margin: 0 auto; /* center horizontally */
+    }
+
+    /* Scroll content area */
+    .scroll-content {
+        position: absolute;
+        top: 20%;
+        left: 10%;
+        right: 10%;
+        text-align: center;
+        font-size: 18px;
+        line-height: 1.4;
+        color: #000;
+    }
+
+    /* Question styling */
+    .question {
+        font-family: 'Georgia', serif;
+        font-weight: bold;
+        font-size: 1.5rem;
+        line-height: 1.4;
+        color: #3b2f2f; /* deep brown */
+        word-wrap: break-word;
+        margin-top: 40px; /* leave top scroll visible */
+        padding: 0 10px;
+        text-align: center;
+    }
+
+    /* Input box styled as slot */
+    .input-box input {
+        background-color: #90ee90; /* light green */
+        border: none;
+        padding: 8px 16px;
+        font-size: 16px;
+        width: 80%;
+        margin-top: 10px;
+        border-radius: 25px; /* slot shape */
+        outline: none;
+        transition: background-color 0.2s ease;
+    }
+
+    .input-box input:focus {
+        background-color: #7ed87e; /* darker green on focus */
+    }
+
+    /* Option buttons styled as slot */
+    .option1, .option2, .option3, .option4 {
+        margin: 8px 0;
+    }
+
+    .option1 button,
+    .option2 button,
+    .option3 button,
+    .option4 button,
+    .next-button button,
+    .skip-button button {
+        background-color: #90ee90; /* light green */
+        border: none;
+        padding: 10px 20px;
+        font-size: 16px;
+        border-radius: 25px; /* slot shape */
+        cursor: pointer;
+        transition: background-color 0.2s ease, transform 0.1s ease;
+    }
+
+    .option1 button:hover,
+    .option2 button:hover,
+    .option3 button:hover,
+    .option4 button:hover,
+    .next-button button:hover,
+    .skip-button button:hover {
+        background-color: #7ed87e; /* darker green on hover */
+        transform: scale(1.05);
+    }
+
+    /* Statement text */
+    .Statement {
+        margin-top: 20px;
+        font-style: italic;
+    }
+
+    /* Next button container */
+    .next-button {
+        margin-top: 20px;
+    }
+</style>
+
+</head>
+<body>
+
+<div class="scroll-slot">
+    <img class="scroll-img" src="Images/scroll-removebg-preview.png" alt="Scroll">
+
+    <!-- NEW container -->
+    <div class="scroll-text-container">
+        <p class="question"></p>
+        <div class="input-box"></div>
+        <div class="option1"></div>
+        <div class="option2"></div>
+        <div class="option3"></div>
+        <div class="option4"></div>
+        <p class="Statement"></p>
+        <div class="next-button"></div>
+        <div class="skip-button"></div>
+    </div>
+</div>
+
+<script>
+  
+let questions = [
+  { type: "input", question: "What is your name?", options: [], answer: "", onCorrect: "", onWrong: "", statement: "" },
+  { type: "input", question: "Where is this penthouse located?", options: [], answer: "", onCorrect: "", onWrong: "", statement: "" },
+  { type: "mcq", question: "What is the name of your favourite football team ?", options: ["Real Madrid", "Bayern Munich", "Liverpool", "Manchester United"], answer: "", onCorrect: "", onWrong: "", statement: "" },
+  { type: "input", question: "What is your fourth favourite colour?", options: [], answer: "", onCorrect: "", onWrong: "", statement: "" },
+  { type: "input", question: "What was that one nickname I had for you but then stopped using cuz you told me to?", options: [], answer: "", onCorrect: "", onWrong: "", statement: "" },
+  { type: "mcq", question: "To whom do you send the most reels to?", options: ["Neha", "Utkarsh", "Pragya", "Utkarsh,but extra pyaar se"], answer: "", onCorrect: "", onWrong: "", statement: "" },
+  { type: "input", question: "What line of MKPJ do you remember the most?", options: [], answer: "", onCorrect: "", onWrong: "", statement: "" },
+  { type: "input", question: "Utkarsh isn’t Utkarsh without______?", options: [], answer: "", onCorrect: "", onWrong: "", statement: "" },
+  { type: "input", question: "Bade papa used to call you _____ when you were chotuuu.", options: [], answer: "", onCorrect: "", onWrong: "", statement: "" },
+  { type: "mcq", question: "Give an approximate estimate of how many calls we had made last year.", options: ["484", "538", "576", "616"], answer: "", onCorrect: "", onWrong: "", statement: "" },
+  { type: "statement", question: "This isn’t a question, it’s just a reminder that you are lovely sweetu.", options: [], answer: "", onCorrect: "", onWrong: "", statement: "" },
+  { type: "input", question: "How jealous do you get when I am with other people without you?", options: [], answer: "", onCorrect: "", onWrong: "", statement: "" },
+  { type: "input", question: "Who is your favourite footballer?", options: [], answer: "", onCorrect: "", onWrong: "", statement: "" },
+  { type: "input", question: "If we were to go out on a street food date what will you look forward to the most?", options: [], answer: "", onCorrect: "", onWrong: "", statement: "" },
+  { type: "input", question: "Why did you cry on your 7th grade birthday?", options: [], answer: "", onCorrect: "", onWrong: "", statement: "" },
+  { type: "input", question: "Use 3 words to describe me.", options: [], answer: "", onCorrect: "", onWrong: "", statement: "" },
+  { type: "input", question: "How wide do I smile when I am talking to you??", options: [], answer: "", onCorrect: "", onWrong: "", statement: "" },
+  { type: "input", question: "What is your worth for me if you are so so so important in my life?", options: [], answer: "", onCorrect: "", onWrong: "", statement: "" },
+  { type: "input", question: "On a scale of 1-10 how excited are you for the pages that are gonna come after this?", options: [], answer: "", onCorrect: "", onWrong: "", statement: "" }
+];
+let currentIndex=0;
+function iterateQuestions() {
+    questions.forEach((q, index) => {
+        if (index === currentIndex) {
+            function1(q, index);
+        }
+    });
+}
+function function1(questionObj, index) {
+  displayQuestion(questionObj);
+
+  // clear options on every question
+  for (let i = 1; i <= 4; i++) document.querySelector(`.option${i}`).innerHTML = "";
+
+  if (questionObj.type === 'input') {
+    displayInputBox();
+
+    if (index === 0) {
+      enableEnterCheck([
+        { answer: "pragya", message: "Yep, that’s you!,but don't forget the new nickname I gave you a few days agoow." },
+        { answer: "pragya pranjal", message: "Full name flex ohoo😎,but don't forget the new nickname I gave you a few days agoow" },
+        { answer: "chicken tandoori", message: "Yeppp! You remembered!That's my gurllll!!" },
+        { answer: "0x12", message: "Owww nooo who are youu?? tryna invade my dear pragya's penthouse" }
+      ]);
+    } else if (index === 1) {
+      enableEnterCheck([
+        { answer: "nyc", message: "Oww that works fine,but it's only the 2nd best answer,behind my heart." },
+        { answer: "you", message: "YAYYYY SMARTYYYYY,YOU'RE ALWAYS WELCOMEEE HEREEEE" },
+        { answer: "0x12", message: "Ahhh too bad you can't be the real one!!Must be an intruder." }
+      ]);
+    } else if (index === 3) {
+      // Q: fourth favourite colour
+      enableEnterCheck([
+        { answer: "pink", message: "Easy peasy less keep rollinggg." },
+        { answer: "0x12", message: "WTF ye galat!!You aren't entering my pragya's house" }
+      ]);
+    } else if (index === 4) {
+      // Q: nickname question (make sure the answer matches the actual nickname!)
+      enableEnterCheck([
+        { answer: "gulabi", message: "So can I use it nowwwww??" },
+        { answer: "0x12", message: "ahh think of your 4th favourite colourr" }
+      ]);
+    } else if (index === 6) {
+      enableEnterCheck([
+        { answer: "0x0x0", message: "Okayyy hmmm for me it's,'bakaiti krte hue dekh liye na toh vhi bicha denge'" }
+      ]);
+    } else if (index === 7) {
+      enableEnterCheck([
+        { answer: "pragya", message: "Ans the answer still remains the same" },
+        { answer: "0x12", message: "Fuckk yaarrrr bhul kaise gaiiiiii" }
+      ]);
+    } else if (index === 8) {
+      enableEnterCheck([
+        { answer: "gunda", message: "Merse bhi hafta logi?" },
+        { answer: "0x12", message: "abeee bhul gaii,it's 'gunda',koi naa" }
+      ]);
+    } else if (index === 11) {
+      enableEnterCheck([
+        { min: 0, max: 0, message: "Okayy you can lie,you'd still be allowed to move ahead\nI hope you also know that I love love x532 spending time w you(the mosttt)." },
+        { min: 1, max: 6, message: "You can think better ig,cuz haha ik the answer\nI hope you also know that I love love x532 spending time w you(the mosttt)." },
+        { min: 7, max: 100000000000000, message: "okay okay damn noted\nI hope you also know that I love love x532 spending time w you(the mosttt)." },
+        { answer: "0x12", message: "I hope you also know that I love love x532 spending time w you(the mosttt)." }
+      ]);
+    } else if (index === 12) {
+      enableEnterCheck([
+        { answer: "utkarsh", message: "hehehe you're the besttttt" },
+        { answer: "0x12", message: "Think again pragya,oh and you're still the besttt" }
+      ]);
+    } else if (index === 13) {
+      enableEnterCheck(
+        [{ answer: "0x12", message: "I wish it was me but okay one must know his limits" }],
+        { value: "you", message: "Khaane par bhi focus kroww" }
+      );
+    } else if (index === 14) {
+      enableEnterCheck(
+        [{ answer: "0x12", message: "Aree koi baat nhi kbhi kbhi bhul jaate" }],
+        { value: "blue dress", message: "I'll definitely get you a pink one jab paise aajaye pkkkaaaa" }
+      );
+    } else if (index === 15) {
+      enableEnterCheck([{ answer: "0x0x0", message: "dayummm woah woah woah" }]);
+    } else if (index === 16) {
+      enableEnterCheck([{ answer: "0x0x0", message: "I smile thiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiis wide while talking to youuu" }]);
+    } else if (index === 17) {
+      enableEnterCheck(
+        [
+          { answer: "worthless", message: "Yeahh you can be worth the universe and still be worthless hehehe" },
+          { answer: "0x12", message: "Ohh no you forgot that ahhhh." }
+        ]
+       
+      );
+    } else if (index === 18) {
+      enableEnterCheck([
+        { min: 1, max: 7, message: "bas itttaaa?????" },
+        { min: 8, max: 100000000000, message: "Yayyyyy that's greatt lessgooo,I hope it lives up to your expectationnn" },
+        { answer: "0x12", message: "Try putting a number :)" }
+      ]);
+    } else {
+      nextQuestion();
+    }
+
+  } else if (questionObj.type === 'mcq') {
+    if (index === 2) {
+      createOptionButtons(['Real Madrid','Bayern Munich','Liverpool','Manchester United']);
+      enableMCQCheck([
+        { text: "Real Madrid", message: "WooHoo officially a real madrid girlie nowwww", correct: true },
+        { text: "Bayern Munich", message: "Ahhhh traitorrrrr" },
+        { text: "Liverpool", message: "Ahhhh traitorrrrr" },
+        { text: "Manchester United", message: "Ahhhh traitorrrrr" }
+      ]);
+    } else if (index === 5) {
+      createOptionButtons(['Neha','Shaivya','Utkarsh','Utkarsh with a lil extra love']);
+      enableMCQCheck([
+        { text: "Neha", message: "Ahhhh I knew you hate meeee", correct: true },
+        { text: "Shaivya", message: "Ahhhh I knew you hate meeee", correct: true },
+        { text: "Utkarsh", message: "Mai toh pyaara hu mujhe extra pyaar se bheja krow", correct: true },
+        { text: "Utkarsh with a lil extra love", message: "yayyyy thankyouuuu I love you tooooooo", correct: true }
+      ], true); // any choice advances
+    } else if (index === 9) {
+      // show numbers as buttons (NOT football teams)
+      createOptionButtons(['484','538','576','616']);
+      enableMCQCheck([
+        { text: "484", message: "Ohhh noo go check the new year msg that I had written for you" },
+        { text: "533", message: "Yesss the 533 calls made you my most talked to person of the yearrr", correct: true },
+        { text: "576", message: "Ohhh noo go check the new year msg that I had written for you" },
+        { text: "616", message: "Ohhh noo go check the new year msg that I had written for you" }
+      ]);
+    }
+  } else if (questionObj.type === 'statement') {
+    createNextButton();
+  }
+}
+
+        
+function displayQuestion(q) {
+    const questionElement = document.querySelector(".question");
+    questionElement.textContent = q.question;
+}
+function displayInputBox() {
+    const inputContainer = document.querySelector(".input-box");
+    const inputElement = document.createElement("input");
+    inputElement.type = "text";
+    inputElement.placeholder = "Enter your answer";
+    inputContainer.innerHTML = "";
+    inputContainer.appendChild(inputElement);
+}
+function checkInputAnswer(correctAnswer) {
+    const inputElement = document.querySelector(".input-box input");
+    if (!inputElement) return false; 
+    const userAnswer = inputElement.value.trim().toLowerCase();
+    const answer = correctAnswer.trim().toLowerCase();
+    return userAnswer === answer;
+}
+function enableEnterCheck(correctAnswersWithMessages, customValueCheck) {
+    const inputElement = document.querySelector(".input-box input");
+    if (!inputElement) return;
+
+    inputElement.addEventListener("keypress", function (event) {
+        if (event.key !== "Enter") return;
+        event.preventDefault();
+
+        const raw = inputElement.value.trim();
+        const userAnswer = raw.toLowerCase();
+
+        // 1) Special immediate message if first item has answer "0x0x0"
+        if (correctAnswersWithMessages[0] && correctAnswersWithMessages[0].answer === "0x0x0") {
+            displayStatement(correctAnswersWithMessages[0].message);
+            createNextButton();
+            localStorage.setItem("quizCurrentIndex", currentIndex + 1);
+            return;
+        }
+
+        // 2) Custom substring check
+        if (customValueCheck && typeof customValueCheck.value === "string") {
+            if (userAnswer.includes(customValueCheck.value.toLowerCase())) {
+                displayStatement(customValueCheck.message);
+                createNextButton();
+                localStorage.setItem("quizCurrentIndex", currentIndex + 1);
+                return;
+            }
+        }
+
+        // 3) Range check across ANY object in the array
+        const numValue = parseFloat(userAnswer);
+        if (!isNaN(numValue)) {
+            const rangeMatch = correctAnswersWithMessages.find(
+                o => typeof o.min === "number" && typeof o.max === "number" && numValue >= o.min && numValue <= o.max
+            );
+            if (rangeMatch) {
+                displayStatement(rangeMatch.message || `✅ Number ${numValue} is between ${rangeMatch.min} and ${rangeMatch.max}`);
+                createNextButton();
+                localStorage.setItem("quizCurrentIndex", currentIndex + 1);
+                return;
+            }
+        }
+
+        // 4) Exact text match
+        const textMatch = correctAnswersWithMessages.find(
+            o => typeof o.answer === "string" && userAnswer === o.answer.toLowerCase()
+        );
+        if (textMatch) {
+            displayStatement(textMatch.message);
+            createNextButton();
+            localStorage.setItem("quizCurrentIndex", currentIndex + 1);
+            return;
+        }
+
+        // 5) Fallback: last object's message (if provided)
+        const fallback = correctAnswersWithMessages[correctAnswersWithMessages.length - 1];
+        if (fallback && fallback.message) {
+            displayStatement(fallback.message);
+        }
+    });
+}
+
+function createOptionButtons(optionsArray) {
+    if (!Array.isArray(optionsArray) || optionsArray.length !== 4) {
+        console.error("createOptionButtons expects an array with exactly 4 elements.");
+        return;
+    }
+
+    // Loop over each option and create a button in the correct div
+    optionsArray.forEach((optionText, index) => {
+        const div = document.querySelector(`.option${index + 1}`);
+        div.innerHTML = ""; // clear old content
+
+        const button = document.createElement("button");
+        button.textContent = optionText;
+        button.style.padding = "8px 16px";
+        button.style.fontSize = "16px";
+        button.style.backgroundColor = "#deb887";
+        button.style.border = "none";
+        button.style.borderRadius = "5px";
+        button.style.cursor = "pointer";
+
+        // Optional: add click behavior
+        button.addEventListener("click", () => {
+            console.log(`You clicked: ${optionText}`);
+            // You could check if correct here
+        });
+
+        div.appendChild(button);
+    });
+}
+
+function displayStatement(text) {
+    const statementContainer = document.querySelector(".Statement");
+    statementContainer.innerHTML = "";
+    const p = document.createElement("p");
+    p.innerHTML = String(text || "").replace(/\n/g, "<br>");
+    statementContainer.appendChild(p);
+}
+
+function createNextButton() {
+    const nextBtnContainer = document.querySelector(".next-button");
+    nextBtnContainer.innerHTML = "";
+
+    const nextBtn = document.createElement("button");
+    nextBtn.textContent = "Next";
+    nextBtn.style.padding = "8px 16px";
+    nextBtn.style.fontSize = "16px";
+    nextBtn.style.backgroundColor = "#deb887";
+    nextBtn.style.border = "none";
+    nextBtn.style.borderRadius = "5px";
+    nextBtn.style.cursor = "pointer";
+    nextBtn.addEventListener("click", nextQuestion);
+
+    nextBtnContainer.appendChild(nextBtn);
+}
+function enableMCQCheck(optionsWithMessages, allowAny = false) {
+  const storageKey = "mcqChoice_" + currentIndex;
+
+  const applyChoice = (choiceText) => {
+    const selected = choiceText.trim().toLowerCase();
+    const matched = optionsWithMessages.find(o => o.text.trim().toLowerCase() === selected);
+
+    document.querySelector(".next-button").innerHTML = "";
+
+    if (matched) {
+      displayStatement(matched.message);
+      if (allowAny || matched.correct) {
+        createNextButton();
+      }
+    }
+  };
+
+  // restore saved choice if any
+  const saved = localStorage.getItem(storageKey);
+  if (saved) applyChoice(saved);
+
+  for (let i = 1; i <= 4; i++) {
+    const btn = document.querySelector(`.option${i} button`);
+    if (!btn) continue;
+    btn.addEventListener("click", () => {
+      const choice = btn.textContent;
+      localStorage.setItem(storageKey, choice);
+      applyChoice(choice);
+    });
+  }
+}
+
+
+
+
+
+function nextQuestion() {
+  // Clear all UI elements first
+  document.querySelector(".next-button").innerHTML = "";
+  document.querySelector(".Statement").innerHTML = "";
+  document.querySelector(".question").innerHTML = "";
+  document.querySelector(".input-box").innerHTML = "";
+  for (let i = 1; i <= 4; i++) {
+    document.querySelector(`.option${i}`).innerHTML = "";
+  }
+
+  currentIndex++;
+
+  // Check if quiz is finished
+  if (currentIndex >= questions.length) {
+    // Create final ENTER button
+     document.querySelector(".next-button").innerHTML = "";
+    document.querySelector(".question").innerHTML = "";
+    document.querySelector(".input-box").innerHTML = "";
+    for (let i = 1; i <= 4; i++) {
+        document.querySelector(`.option${i}`).innerHTML = "";
+    }
+     const statementContainer = document.querySelector(".Statement");
+    statementContainer.innerHTML = "<p>🎉 You’ve completed all the questions! 🎉\n Now IK you are the real Pragya,enjoy your new penthouse</p>";
+    const endContainer = document.querySelector(".next-button");
+    const enterBtn = document.createElement("button");
+    enterBtn.textContent = "ENTER";
+    enterBtn.style.padding = "10px 20px";
+    enterBtn.style.fontSize = "18px";
+    enterBtn.style.backgroundColor = "#4CAF50";
+    enterBtn.style.color = "white";
+    enterBtn.style.border = "none";
+    enterBtn.style.borderRadius = "5px";
+    enterBtn.style.cursor = "pointer";
+
+    // Redirect when clicked (change "nextpage.html" to your page)
+    enterBtn.addEventListener("click", function () {
+      window.location.href = "home.html";
+    });
+
+    endContainer.appendChild(enterBtn);
+    return;
+  }
+
+  // Save progress
+  localStorage.setItem("currentIndex", currentIndex);
+
+  // Load the next question
+  function1(questions[currentIndex], currentIndex);
+}
+
+
+function loadProgress() {
+    const savedIndex = localStorage.getItem("quizCurrentIndex");
+    if (savedIndex !== null) {
+        currentIndex = parseInt(savedIndex, 10);
+    } else {
+        currentIndex = 0;
+    }
+}
+loadProgress();
+iterateQuestions();
+
+
+</script>
+</body>
+</html>                        
